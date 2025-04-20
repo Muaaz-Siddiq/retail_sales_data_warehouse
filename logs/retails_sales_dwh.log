@@ -1,0 +1,18 @@
+2025-04-20 02:49:58 - INFO - Engine created successfully
+2025-04-20 02:49:58 - INFO - Creating schema for the Bronze layer
+2025-04-20 02:49:58 - INFO - SUCCESS: Schema for the Bronze layer created successfully
+2025-04-20 02:49:58 - INFO - Creating schema for the Silver layer
+2025-04-20 02:49:58 - INFO - SUCCESS: Schema for the Silver layer created successfully
+2025-04-20 02:49:58 - INFO - Creating schema for the Gold layer
+2025-04-20 02:49:58 - INFO - SUCCESS: Schema for the Gold layer created successfully
+2025-04-20 02:57:10 - INFO - Engine created successfully
+2025-04-20 02:57:10 - INFO - Running Bronze Layer...
+2025-04-20 02:57:10 - INFO - Redding CSV file
+2025-04-20 02:57:10 - INFO - SUCCESS: CSV file read successfully
+2025-04-20 02:57:10 - INFO - Adding data_ingestion_timestamp column
+2025-04-20 02:57:10 - INFO - SUCCESS: data_ingestion_timestamp column added successfully
+2025-04-20 02:57:10 - INFO - Converting Polars DataFrame to Pandas DataFrame
+2025-04-20 02:57:12 - INFO - SUCCESS: Conversion successful
+2025-04-20 02:57:12 - INFO - Saving Data to table in the Bronze Layer as-is
+2025-04-20 02:57:13 - INFO - SUCCESS: Data saved to Bronze Layer successfully
+2025-04-20 02:57:13 - INFO - SUCCESS: Bronze Layer completed successfully
