@@ -35,6 +35,14 @@ def silver_layer_func() -> None:
         logger.success("Column names normalized successfully")
     
     
+        # Fixing Order ID prefix
+        logger.info("Fixing Order ID prefix")
+        df = df.with_columns([
+            pl.col('Order ID').str.replace('^CA', 'US')
+        ])
+        logger.success("Order ID prefix fixed successfully")
+    
+    
         # Dropping unwanted columns
         logger.info("Dropping Row ID")
         df = df.drop('row_id')
@@ -49,6 +57,12 @@ def silver_layer_func() -> None:
         ])
     
     
+        # Sorting the DataFrame by Order Date in ascending order
+        logger.info("Sorting the DataFrame by Order Date in ascending order")
+        df = df.sort('order_date')
+        logger.success("DataFrame sorted by Order Date in ascending order successfully")
+    
+    
         # Rounding the Sales values to 2 decimal points
         logger.info("Rounding the Sales values to 2 decimal points")
         df = df.with_columns([
@@ -57,6 +71,25 @@ def silver_layer_func() -> None:
         logger.success("Sales values rounded to 2 decimal points successfully")
     
     
+        # Removing test data through name column as it contains test data
+        logger.info("Removing test data through name column")
+        df = df.filter(
+            ~ pl.col('customer_name').str.to_lowercase().str.contains_any(['test', 'sample', 'demo', 'example'])
+        )
+        logger.success("Test data removed successfully")
+    
+    
+        # Removing duplicate orders by keeping only the latest order
+        logger.info("Removing duplicate Orders")
+        df = df.unique(subset=['order_id', 'product_id'], keep='last')
+        logger.success("Duplicate Orders removed successfully")
+    
+    
+        dim_order = df.select( 'order_id', 'order_date').with_columns([
+            pl.col('order_id').cum_count().alias('dim_order_key')
+        ])
+        
+        display(df.join(dim_order.select(['order_id','dim_order_key']), how='left', left_on='order_id', right_on='order_id').drop('order_id', 'order_date').sort('dim_order_key', descending=True).limit(5))
     
     
     except Exception as e:
