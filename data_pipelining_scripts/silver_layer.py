@@ -86,8 +86,6 @@ def silver_layer_func() -> None:
     
     
         # Adding potential values (selling price, delievery charges or quantities) due to prices differences within similiar product
-        
-        
         logger.info("Adding potential selling price")
         df = df.with_columns([
             (pl.min('sales').over(['category', 'sub_category']).round(2)).alias('potential_selling_price')

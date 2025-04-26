@@ -38,6 +38,126 @@ def create_schemas() -> None:
         raise e
 
 
+
+def create_facts_dimension_tables() -> None:
+    try:
+        '''
+        This function creates the fact and dimension tables in the database.
+        '''
+        
+        # Create the fact table for the Silver layer
+        logger.info("Creating dim orders table")
+        with engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS retail_sales_dwh_gold.dim_orders (
+                    order_id INT,
+                    order_date DATE,
+                    dim_order_key INT
+                )
+            """))
+            conn.commit()
+        logger.success("Dim orders table created successfully")
+        
+        
+        logger.info('Creating dim location table')
+        with engine.connect() as conn:
+            conn.execute(
+                text(
+                    """  
+                    CREATE TABLE IF NOT EXISTS retail_sales_dwh_gold.dim_location (
+                        country VARCHAR(50),
+                        region VARCHAR(50),
+                        state VARCHAR(50),
+                        city VARCHAR(50),
+                        postal_code INT,
+                        dim_location_key INT
+                    )
+                    """
+                ))
+            conn.commit()
+        logger.success("Dim location table created successfully")
+        
+        
+        logger.info('Creating dim shipment table')
+        with engine.connect() as conn:
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS retail_sales_dwh_gold.dim_shipment(
+                        ship_date DATE,
+                        ship_mode VARCHAR(80),
+                        dim_shipment_key INT
+                    )
+                    """
+                ))
+            conn.commit()
+            logger.success("Dim shipment table created successfully")
+        
+        
+        logger.info('Creating dim customer table')
+        with engine.connect() as conn:
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS retail_sales_dwh_gold.dim_customer(
+                        customer_id INT,
+                        customer_name VARCHAR(100),
+                        customer_segment VARCHAR(60),
+                        dim_customer_key INT
+                        )
+                    """
+                )
+            )
+            conn.commit()
+        logger.success("Dim customer table created successfully")
+        
+        
+        logger.info('Creating dim product table')
+        with engine.connect() as conn:
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS retail_sales_dwh_gold.dim_product(
+                        product_id INT,
+                        product_name VARCHAR(300),
+                        category VARCHAR(100),
+                        sub_category VARCHAR(100),
+                        dim_product_key INT
+                    )
+                    """
+                )
+            )
+            conn.commit()
+        logger.success("Dim product table created successfully")
+        
+        
+        logger.info('Creating Fact sales table')
+        with engine.connect() as conn:
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS retail_sales_dwh_gold.fact_sales(
+                        dim_order_key INT,
+                        dim_location_key INT,
+                        dim_shipment_key INT,
+                        dim_customer_key INT,
+                        dim_product_key INT,
+                        sales_amount FLOAT,
+                        potential_delivery_charges FLOAT,
+                        potential_selling_price FLOAT,
+                        potential_quantities INT
+                        )
+                        """
+                )
+            )
+            conn.commit()
+        logger.success("Fact sales table created successfully")
+
+
+    except Exception as e:
+        raise e
+
+
 if __name__ == "__main__":
     
     try:
@@ -48,6 +168,12 @@ if __name__ == "__main__":
         logger.success("Schemas created successfully")
         
         print("Schemas created successfully")
+        
+        logger.info("Creating fact and dimension tables...")
+        print("Creating fact and dimension tables...")
+        create_facts_dimension_tables()
+        logger.success("Fact and dimension tables created successfully")
+        print("Fact and dimension tables created successfully")
     
     except Exception as e:
         logger.error(f"Error in creating schemas: {e}")
