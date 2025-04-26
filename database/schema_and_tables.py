@@ -41,6 +41,7 @@ def create_schemas() -> None:
 if __name__ == "__main__":
     
     try:
+        logger.info("Creating schemas...")
         print("Creating schemas...")
         
         create_schemas()

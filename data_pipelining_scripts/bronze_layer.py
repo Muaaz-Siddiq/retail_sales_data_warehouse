@@ -18,7 +18,7 @@ def bronze_layer_func() -> None:
         # display(df.head())
         
         logger.info("Adding data_ingestion_timestamp column")
-        df = df.with_columns( [pl.lit(datetime.now().replace(microsecond=0)).alias('data_ingestion_timestamp') ])
+        df = df.with_columns( [pl.lit(datetime.now().replace(microsecond=0)).alias('data_ingestion_timestamp_bronze') ])
         logger.success("data_ingestion_timestamp column added successfully")
         
         # display(df.head())
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         
         logger.info("Running Bronze Layer...")
         bronze_layer_func()
-        logger.success("Bronze Layer completed successfully")
+        logger.success("Bronze Layer executed successfully")
         
         print("Bronze Layer completed successfully")
     

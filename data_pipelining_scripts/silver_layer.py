@@ -31,14 +31,14 @@ def silver_layer_func() -> None:
     
         # Normalizing column names
         logger.info("Normalizing column names")
-        df = df.rename( {col : col.rstrip().replace(" ", "_").lower() for col in df.columns } )
+        df = df.rename( {col : col.rstrip().replace(" ", "_").replace("-", "_").lower() for col in df.columns } )
         logger.success("Column names normalized successfully")
     
     
         # Fixing Order ID prefix
         logger.info("Fixing Order ID prefix")
         df = df.with_columns([
-            pl.col('Order ID').str.replace('^CA', 'US')
+            pl.col('order_id').str.replace('^CA', 'US')
         ])
         logger.success("Order ID prefix fixed successfully")
     
@@ -85,12 +85,51 @@ def silver_layer_func() -> None:
         logger.success("Duplicate Orders removed successfully")
     
     
-        dim_order = df.select( 'order_id', 'order_date').with_columns([
-            pl.col('order_id').cum_count().alias('dim_order_key')
-        ])
+        # Adding potential values (selling price, delievery charges or quantities) due to prices differences within similiar product
         
-        display(df.join(dim_order.select(['order_id','dim_order_key']), how='left', left_on='order_id', right_on='order_id').drop('order_id', 'order_date').sort('dim_order_key', descending=True).limit(5))
-    
+        
+        logger.info("Adding potential selling price")
+        df = df.with_columns([
+            (pl.min('sales').over(['category', 'sub_category']).round(2)).alias('potential_selling_price')
+        ])
+        logger.success("Potential selling price added successfully")
+        
+        
+        logger.info("Adding potential delievery charges")
+        df = df.with_columns([
+            (
+            pl.col('sales') - pl.col('potential_selling_price').round(2)
+            ).alias('potential_delivery_charges')
+        ])
+        logger.success("Potential delivery charges added successfully")
+        
+        
+        logger.info("Adding potential quantities")
+        df = df.with_columns([
+            (
+            (pl.col('sales') / pl.col('potential_selling_price')).ceil()
+            ).alias('potential_quantities')
+        ])
+        logger.success("Potential quantities added successfully")
+        
+        
+        logger.info("Adding data_ingestion_timestamp column")
+        df = df.with_columns( [pl.lit(datetime.now().replace(microsecond=0)).alias('data_ingestion_timestamp_silver') ])
+        logger.success("data_ingestion_timestamp column added successfully")
+        
+        
+        # Convert the Polars DataFrame to a Pandas DataFrame
+        logger.info("Converting Polars DataFrame to Pandas DataFrame")
+        df_to_pandas = df.to_pandas()
+        logger.success("Conversion successful")
+        
+        
+        # Saving Data to table in the Silver Layer as-is (updated Dataframe)
+        logger.info("Saving Data to table in the Silver Layer as-is")
+        df_to_pandas.to_sql(name="retail_sales_silver", con=engine, schema="retail_sales_dwh_silver", if_exists="replace", 
+                            index=False)
+        logger.success("Data saved to Silver Layer successfully")
+
     
     except Exception as e:
         logger.error(f"Error in Silver Layer: {e}")
@@ -105,9 +144,9 @@ if __name__ == "__main__":
     try:
         print("Running Silver Layer...")
         
-        logger.info("Running SilverBronze Layer...")
+        logger.info("Running Silver Layer...")
         silver_layer_func()
-        logger.success("Silver Layer completed successfully")
+        logger.success("Silver Layer executed successfully")
         
         print("Silver Layer completed successfully")
     

@@ -164,4 +164,35 @@ tdf.group_by('Order ID', 'Product ID').agg(
 tdf = tdf.sort('Order Date').unique(subset=['Order ID', 'Product ID'], keep='last')
 
 
-# ========== Repeating Dimesion key need to fix it.
+# Check for sales values difference
+display(tdf.group_by(['Category',
+    'Sub-Category',
+    'Product Name',
+    'City']).agg(pl.col('Sales').max().alias('Max_Sales'), pl.col('Sales').min().alias('Min_Sales')
+                ).sort(['Product Name', 'City']).head(15))
+
+
+
+tdf.with_columns([
+    (
+        ((pl.col("Sales") - pl.col("Sales").min().over(["Category", "Sub-Category"])) * 100)
+        .round(0)  # round to integer after scaling
+        / 100
+    ).alias('potential_delivery_charge')
+]).select('Category', 'Sub-Category', 'Product Name', 'City', 'Sales', 'potential_delivery_charge')
+
+
+
+tdf.with_columns([
+        (pl.col('Sales') - pl.col("Sales").min()).over(["Category", "Sub-Category"])\
+        .alias('potential_delievery_charge')
+]).select('Category', 'Sub-Category', 'Product Name', 'City', 'Sales', 
+        'potential_delievery_charge').filter(pl.col('potential_delievery_charge') == 0)
+
+
+
+tdf.with_columns([
+    (
+        (pl.col('Sales') / pl.col('Sales').min().over(["Category", "Sub-Category"])).floor()
+    ).alias('potential_quantity')
+])
