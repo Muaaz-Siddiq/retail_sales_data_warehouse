@@ -3,9 +3,7 @@ import polars as pl
 from IPython.display import display
 from database.db_connection import engine
 from datetime import datetime
-import os, traceback
-from dotenv import load_dotenv
-load_dotenv()
+import traceback, sys
 
 
 def silver_layer_func() -> None:
@@ -153,4 +151,4 @@ if __name__ == "__main__":
         print(f"Error in Silver Layer: {e}")
         
         traceback.print_exc()
-        exit(1)
+        sys.exit(1)

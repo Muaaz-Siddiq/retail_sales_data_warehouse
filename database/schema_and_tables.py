@@ -1,6 +1,7 @@
 from db_connection import engine
 from sqlalchemy import text
 from utilities.loggers import logger
+import sys
 
 
 
@@ -50,8 +51,7 @@ def create_facts_dimension_tables() -> None:
         with engine.connect() as conn:
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS retail_sales_dwh_gold.dim_orders (
-                    order_id INT,
-                    order_date DATE,
+                    order_id VARCHAR(80) UNIQUE,
                     dim_order_key INT
                 )
             """))
@@ -84,7 +84,6 @@ def create_facts_dimension_tables() -> None:
                 text(
                     """
                     CREATE TABLE IF NOT EXISTS retail_sales_dwh_gold.dim_shipment(
-                        ship_date DATE,
                         ship_mode VARCHAR(80),
                         dim_shipment_key INT
                     )
@@ -100,7 +99,7 @@ def create_facts_dimension_tables() -> None:
                 text(
                     """
                     CREATE TABLE IF NOT EXISTS retail_sales_dwh_gold.dim_customer(
-                        customer_id INT,
+                        customer_id VARCHAR(80) UNIQUE,
                         customer_name VARCHAR(100),
                         customer_segment VARCHAR(60),
                         dim_customer_key INT
@@ -118,7 +117,7 @@ def create_facts_dimension_tables() -> None:
                 text(
                     """
                     CREATE TABLE IF NOT EXISTS retail_sales_dwh_gold.dim_product(
-                        product_id INT,
+                        product_id VARCHAR(80) UNIQUE,
                         product_name VARCHAR(300),
                         category VARCHAR(100),
                         sub_category VARCHAR(100),
@@ -131,6 +130,22 @@ def create_facts_dimension_tables() -> None:
         logger.success("Dim product table created successfully")
         
         
+        logger.info('Creating dim date table')
+        with engine.connect() as conn:
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS retail_sales_dwh_gold.dim_date(
+                        dates DATE,
+                        dim_date_key INT
+                    )
+                    """
+                ))
+            conn.commit()
+        logger.success("Dim date table created successfully")
+        
+        
+        
         logger.info('Creating Fact sales table')
         with engine.connect() as conn:
             conn.execute(
@@ -138,8 +153,10 @@ def create_facts_dimension_tables() -> None:
                     """
                     CREATE TABLE IF NOT EXISTS retail_sales_dwh_gold.fact_sales(
                         dim_order_key INT,
+                        dim_order_date_key INT,
                         dim_location_key INT,
                         dim_shipment_key INT,
+                        dim_shipment_date_key INT,
                         dim_customer_key INT,
                         dim_product_key INT,
                         sales_amount FLOAT,
@@ -178,4 +195,4 @@ if __name__ == "__main__":
     except Exception as e:
         logger.error(f"Error in creating schemas: {e}")
         print(f"Error in creating schemas: {e}")
-        exit(1)
+        sys.exit(1)
